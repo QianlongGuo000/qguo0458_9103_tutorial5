@@ -1,5 +1,7 @@
 let colorfulRings = []; // all colorfulrings
 
+let backgroundDots = []; // background colorful dots represent aboriginal dot painting
+
 let canvasSize = 1000; // set canvas size
 let canvasScale = 1; // canvas scaling according to the canvas size
 let ringNumbers = 100; // max number of randomly generated circles
@@ -13,32 +15,13 @@ function setup() {
   createCanvas(canvasSize, canvasSize, P2D);
   windowResized();
   generateRandomRings();
-  c1 = color(183,96,178); // blue
-  c2 = color(37,88,109); // purple
+  generateBackgroundDots();// generate multiple colorful dots on the background that are translucent and make them scale
 }
 
 function draw() {
-  //slowly shifting background gradient over time
-  let amt = map(sin(frameCount * 0.01), -1, 1, 0, 1);
-  let bg = lerpColor(c1, c2, amt);
-  background(bg);
-  // Aboriginal dot Painting background
-  drawDotBackground();
-  showAllRings();
-}
-
-// draw multiple dots with random colors behind the rings
-function drawDotBackground() {
-  let radius = 5;
-  let diameter = radius * 2;
-  noStroke();
-  for (let y = radius; y < height; y += diameter) {
-    for (let x = radius; x < width; x += diameter) {
-      // radom color of the small dots
-      fill(random(255), random(255), random(255), 180);
-      circle(x, y, diameter);
-    }
-  }
+  background(20);
+  drawBackgroundDots(); // draw background function
+  showAllRings(); // colorful rings function
 }
 
 //resize the canvas as the window changes so that the canvas is always 1:1
@@ -46,12 +29,6 @@ function windowResized() {
   let minWinSize = min(windowWidth, windowHeight);
   resizeCanvas(minWinSize, minWinSize);
   canvasScale = minWinSize / canvasSize;
-}
-
-function updateCanvasScale() {
-  //canvas scaling based on the ratio of the smaller side of the window to the size of the artwork
-  let minWinSize = min(windowWidth, windowHeight);
-  canvasScale = minWinSize / baseCanvasSize;
 }
 
 //randomly generate non-overlapping rings of different positions and sizes
@@ -87,10 +64,52 @@ function generateRandomRings() {
 function showAllRings() {
   for (let i = 0; i < colorfulRings.length; i++) {
     let ring = colorfulRings[i];
-    
-    // rotate and scale
     let rot = sin(frameCount * 0.01 + i) * 0.5;
     let scaleFactor = 0.9 + 0.1 * sin(frameCount * 0.02 + i * 2);
-    
     ring.show(rot, scaleFactor);
-}}
+  }
+}
+
+// generate multiple colorful dots on the background that are translucent and make them scale
+function generateBackgroundDots() {
+  backgroundDots = [];
+
+  let spacing = 20; //the spacing of dots on the background is 20
+
+// double loop, from (10, 10) to (canvassize, canvassize), generate dots based on spacing
+  for (let x = 10; x < canvasSize; x += spacing) {
+    for (let y = 10; y < canvasSize; y += spacing) {
+
+      let baseRadius = random(10, 25);
+
+      let col = color(random(100, 255), random(100, 255), random(100, 255), 180); //translucent and random colors
+
+      //store attributes of dots
+      backgroundDots.push({
+        x: x,
+        y: y,
+        baseRadius: baseRadius,
+        r: baseRadius,
+        col: col,
+        angle: random(0, TWO_PI),    // angle from 0 to 2π so the scaling animations of dots will start at a differnt time
+        speed: random(0.01, 0.05) // random speed of the scaling animation
+      }
+    );
+    }
+  }
+}
+
+// draw the dots on the background
+function drawBackgroundDots() {
+  noStroke();
+  //loop through the backgrounddots array
+  for (let dot of backgroundDots) {
+    //calculate the animated radius
+    //dot.baseRadius: basic size of the dot; 0.5+0.5*sin(): change sin() from [-1,1] to [0,1] so the radius is in [0, baseradius]; 
+    //frameCount * dot.speed: controls how fast each dot scales; +dot.angle: control what time will the dots start to scale
+    dot.r = dot.baseRadius * (0.5 + 0.5 * sin(frameCount * dot.speed + dot.angle));
+    fill(dot.col);
+    //draw the dots
+    circle(dot.x * canvasScale, dot.y * canvasScale, dot.r * 2 * canvasScale);
+  }
+}

@@ -2,6 +2,8 @@ let colorfulRings = []; // all colorfulrings
 
 let backgroundDots = []; // background colorful dots represent aboriginal dot painting
 
+let rotatingDots = []; // rotating dots in the front
+
 let canvasSize = 1000; // set canvas size
 let canvasScale = 1; // canvas scaling according to the canvas size
 let ringNumbers = 100; // max number of randomly generated circles
@@ -9,19 +11,21 @@ let minRadius = canvasSize * 0.2; // min radius possible
 let maxRadius = canvasSize * 0.8; // max radius possible
 let maxAttempts = 100000; // maximum number of attempts to generate circles
 let lineWeight = 4; // line weight
-let c1, c2; //2 different colors for background gradient
+let numRotatingDots = 150; // numbers of rotating dots
 
 function setup() {
   createCanvas(canvasSize, canvasSize, P2D);
   windowResized();
   generateRandomRings();
   generateBackgroundDots();// generate multiple colorful dots on the background that are translucent and make them scale
+  generateRotatingDots();//旋转
 }
 
 function draw() {
-  background(20);
+  background(255);
   drawBackgroundDots(); // draw background function
   showAllRings(); // colorful rings function
+  drawRotatingDots();//旋转
 }
 
 //resize the canvas as the window changes so that the canvas is always 1:1
@@ -112,4 +116,37 @@ function drawBackgroundDots() {
     //draw the dots
     circle(dot.x * canvasScale, dot.y * canvasScale, dot.r * 2 * canvasScale);
   }
+}
+
+// function generateRotatingDots() and function drawRotatingDots() are inspired from online example https://openprocessing.org/sketch/742312. 
+// what this referenced code shows is very similar to the effect I want which is generating dots around the center of the circle
+// It uses this.angle += this.speed; to make the dots rotate
+
+
+//generate colorful dots that rotate around the center
+function generateRotatingDots() {
+  //use for loop to generate multiple dots. numbers based on numRotatingDots
+  for (let i = 0; i < numRotatingDots; i++) {
+    //radius is the distance of dots from the center. generate random distance
+    let radius = random(canvasSize * 0.1, canvasSize * 0.6);
+    //generate an angle from 0 to 2π so dots will be on different positions
+    let angle = random(TWO_PI);
+    //set the speed of rotation
+    let speed = 0.01;
+    let col = color(random(100, 255), random(100, 255), random(100, 255), 255);
+    rotatingDots.push({ radius, angle, speed, col });
+  }
+}
+
+function drawRotatingDots() {
+  translate(width / 2, height / 2);  //set the center of the rotating dots
+  noStroke();
+  for (let dot of rotatingDots) {
+    dot.angle += dot.speed; //every frame the angle increases some degrees so the dots will rotate
+    let x = dot.radius * cos(dot.angle);
+    let y = dot.radius * sin(dot.angle);
+    fill(dot.col);
+    circle(x * canvasScale, y * canvasScale, 10 * canvasScale);
+  }
+  pop();
 }

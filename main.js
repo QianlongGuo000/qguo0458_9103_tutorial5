@@ -12,20 +12,26 @@ let maxRadius = canvasSize * 0.8; // max radius possible
 let maxAttempts = 100000; // maximum number of attempts to generate circles
 let lineWeight = 4; // line weight
 let numRotatingDots = 150; // numbers of rotating dots
+let meteorX = [];
+let meteorY = [];
+let meteorSpeed = [];
+
 
 function setup() {
   createCanvas(canvasSize, canvasSize, P2D);
   windowResized();
   generateRandomRings();
   generateBackgroundDots();// generate multiple colorful dots on the background that are translucent and make them scale
-  generateRotatingDots();//旋转
+  generateRotatingDots();
+  meteor();
 }
 
 function draw() {
   background(255);
   drawBackgroundDots(); // draw background function
   showAllRings(); // colorful rings function
-  drawRotatingDots();//旋转
+  drawRotatingDots();
+  drawMeteor();//draw meteors effect
 }
 
 //resize the canvas as the window changes so that the canvas is always 1:1
@@ -118,9 +124,9 @@ function drawBackgroundDots() {
   }
 }
 
-// function generateRotatingDots() and function drawRotatingDots() are inspired from online example https://openprocessing.org/sketch/742312. 
-// what this referenced code shows is very similar to the effect I want which is generating dots around the center of the circle
-// It uses this.angle += this.speed; to make the dots rotate
+// function generateRotatingDots() and function drawRotatingDots() are inspired by online example https://openprocessing.org/sketch/742312. 
+// What this reference code shows is very similar to the effect I want which is generating dots around the center of the circle.
+// It uses this.angle += this.speed; to make the dots rotate.
 
 
 //generate colorful dots that rotate around the center
@@ -139,6 +145,7 @@ function generateRotatingDots() {
 }
 
 function drawRotatingDots() {
+  push();
   translate(width / 2, height / 2);  //set the center of the rotating dots
   noStroke();
   for (let dot of rotatingDots) {
@@ -149,4 +156,41 @@ function drawRotatingDots() {
     circle(x * canvasScale, y * canvasScale, 10 * canvasScale);
   }
   pop();
+}
+
+// function meteor() and function drawMeteor() are inspired by online example https://openprocessing.org/sketch/2479925.
+// What this reference code shows is a diagonal meteor animation which is a good effect to make the project more vivid.
+// It uses arrays to define the position and speed of meteors, and make them move diagonally from the top-right. When a meteor moves outof the screen, it resets to a new starting point.
+
+//initialize position and speed of the meteor
+function meteor(){
+  for (let i = 0; i < 10; i++) {
+  meteorX[i] = random(0, canvasSize);
+  meteorY[i] = random(-100,0);
+  meteorSpeed[i] = random(1,8); //a random falling speed of the meteor
+}
+}
+
+//draw the meteors
+function drawMeteor(){
+  stroke(255,255,255,150);
+  //three lines that make up the meteor
+for (let i = 0; i < 10; i++) {
+  strokeWeight(10);
+  line(meteorX[i], meteorY[i], meteorX[i] + 5, meteorY[i] - 5);
+  strokeWeight(5);
+  line(meteorX[i] + 15, meteorY[i] - 15, meteorX[i] + 25, meteorY[i] - 25);
+  strokeWeight(2);
+  line(meteorX[i] + 35, meteorY[i] - 35, meteorX[i] + 85, meteorY[i] - 85);
+
+  //move the meteors diagonally to the left(x pos) and downward(y pos)
+  meteorX[i] -= 4;
+  meteorY[i] += meteorSpeed[i];
+
+  //if a meteor move off screen(either on the left or the bottom), reset the position and restart the movement
+  if (meteorX[i] < 50 || meteorY[i] > canvasSize+50) {
+    meteorX[i] = random(0, canvasSize);
+    meteorY[i] = random(-100, 0);
+  }
+}
 }
